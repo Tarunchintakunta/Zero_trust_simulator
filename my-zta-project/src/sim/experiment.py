@@ -1,0 +1,154 @@
+"""
+Zero Trust Architecture (ZTA) Experiment Runner
+
+This module runs experiments comparing baseline vs ZTA configurations.
+"""
+
+import json
+import logging
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Optional
+
+from src.logging.central_logger import get_logger
+from src.sim.attacks import AttackSimulator, AttackType
+from src.sim.run_sim import generate_events
+
+class ExperimentRunner:
+    """Runs ZTA experiments and collects results."""
+    
+    def __init__(self, config_path: Path):
+        """
+        Initialize with experiment configuration.
+        
+        Args:
+            config_path: Path to experiment config JSON
+        """
+        self.config_path = Path(config_path)
+        with open(config_path) as f:
+            self.config = json.load(f)
+        
+        # Set up logging
+        logging.basicConfig(level=logging.INFO)
+        self.logger = logging.getLogger(__name__)
+        
+        # Create output directory
+        self.output_dir = Path(self.config["output"]["base_dir"]) / datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Save config copy
+        with open(self.output_dir / "config.json", "w") as f:
+            json.dump(self.config, f, indent=2)
+    
+    def _run_scenario(self, scenario: Dict) -> Dict:
+        """Run a single scenario and collect results."""
+        scenario_dir = self.output_dir / scenario["name"]
+        scenario_dir.mkdir(exist_ok=True)
+        
+        # Set up logging for this scenario
+        log_path = scenario_dir / "events.jsonl"
+        scenario_logger = get_logger(log_path)
+        
+        # Generate normal traffic
+        self.logger.info(f"Generating {scenario['sim_count']} normal events for {scenario['name']}")
+        normal_events = generate_events(
+            count=scenario["sim_count"],
+            seed=self.config["seed"],
+            use_controls=scenario["controls"]["auth"]
+        )
+        
+        # Log normal events
+        for event in normal_events:
+            scenario_logger.log_event(event)
+        
+        # Run attack simulation if enabled
+        if scenario.get("attack_profile", {}).get("enabled", False):
+            attack_profile = scenario["attack_profile"]
+            attack_sim = AttackSimulator(seed=self.config["seed"])
+            
+            if attack_profile["type"] == AttackType.CREDENTIAL_STUFFING:
+                self.logger.info(f"Simulating credential stuffing attack in {scenario['name']}")
+                attack_events = attack_sim.simulate_credential_stuffing(
+                    target_users=attack_profile["target_users"],
+                    attempts=attack_profile["attempts"]
+                )
+            
+            elif attack_profile["type"] == AttackType.LATERAL_MOVEMENT:
+                self.logger.info(f"Simulating lateral movement in {scenario['name']}")
+                attack_events = attack_sim.simulate_lateral_movement(
+                    compromised_user=attack_profile["compromised_user"],
+                    target_resources=attack_profile["target_resources"],
+                    attempts=attack_profile["attempts"]
+                )
+            
+            elif attack_profile["type"] == AttackType.RANSOMWARE:
+                self.logger.info(f"Simulating ransomware attack in {scenario['name']}")
+                attack_events = attack_sim.simulate_ransomware(
+                    compromised_user=attack_profile["compromised_user"],
+                    target_resources=attack_profile["target_resources"],
+                    encryption_attempts=attack_profile["attempts"]
+                )
+            
+            # Log attack events
+            for event in attack_events:
+                scenario_logger.log_event(event)
+        
+        # Calculate basic metrics
+        total_events = len(normal_events)
+        successful_events = sum(1 for e in normal_events if e["success"])
+        failed_events = total_events - successful_events
+        
+        metrics = {
+            "total_events": total_events,
+            "successful_events": successful_events,
+            "failed_events": failed_events,
+            "success_rate": successful_events / total_events if total_events > 0 else 0
+        }
+        
+        # Save metrics
+        with open(scenario_dir / "metrics.json", "w") as f:
+            json.dump(metrics, f, indent=2)
+        
+        return metrics
+    
+    def run(self) -> Dict[str, Dict]:
+        """
+        Run all scenarios in the experiment.
+        
+        Returns:
+            Dict mapping scenario names to their metrics
+        """
+        results = {}
+        
+        for scenario in self.config["scenarios"]:
+            self.logger.info(f"Running scenario: {scenario['name']}")
+            metrics = self._run_scenario(scenario)
+            results[scenario["name"]] = metrics
+        
+        # Save overall results
+        with open(self.output_dir / "results.json", "w") as f:
+            json.dump(results, f, indent=2)
+        
+        return results
+
+def main():
+    """Main entry point for running experiments."""
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="Run ZTA experiments")
+    parser.add_argument("--config", type=str, required=True,
+                       help="Path to experiment config JSON")
+    
+    args = parser.parse_args()
+    
+    runner = ExperimentRunner(Path(args.config))
+    results = runner.run()
+    
+    print("\nExperiment Results:")
+    for scenario, metrics in results.items():
+        print(f"\n{scenario}:")
+        print(f"  Total Events: {metrics['total_events']}")
+        print(f"  Success Rate: {metrics['success_rate']:.2%}")
+
+if __name__ == "__main__":
+    main()
