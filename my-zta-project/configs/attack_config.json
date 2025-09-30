@@ -1,0 +1,8 @@
+{
+    "type": "ransomware",
+    "target_users": ["alice", "bob"],
+    "target_resources": ["/app/files", "/app/db"],
+    "attempts": 50,
+    "seed": 42,
+    "out": "data/attack_events.jsonl"
+}

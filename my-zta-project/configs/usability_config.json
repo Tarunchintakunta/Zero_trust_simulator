@@ -1,0 +1,22 @@
+{
+    "user": "alice",
+    "device": "laptop-1",
+    "count": 10,
+    "seed": 42,
+    "out": "data/usability_test.csv",
+    "controls_enabled": true,
+    "task_types": [
+        "login",
+        "access_file",
+        "edit_file",
+        "run_report",
+        "admin_task"
+    ],
+    "task_weights": {
+        "login": 0.2,
+        "access_file": 0.3,
+        "edit_file": 0.3,
+        "run_report": 0.1,
+        "admin_task": 0.1
+    }
+}

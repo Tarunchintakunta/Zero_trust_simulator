@@ -1,0 +1,9 @@
+{
+    "mode": "zta",
+    "count": 100,
+    "seed": 42,
+    "out": "data/sample_logs.jsonl",
+    "users": ["alice", "bob", "carol"],
+    "devices": ["laptop-1", "phone-1", "vm-2"],
+    "resources": ["/app/db", "/app/files", "/app/admin"]
+}

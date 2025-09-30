@@ -1,0 +1,42 @@
+{
+    "mode": "zta",
+    "run_id": "test_run",
+    "seed": 42,
+    "scenarios": [
+        {
+            "name": "baseline",
+            "sim_count": 5,
+            "controls": {
+                "auth": false,
+                "posture": false,
+                "segmentation": false
+            },
+            "attack_profile": {
+                "enabled": true,
+                "type": "credential_stuffing",
+                "target_users": ["alice", "bob"],
+                "attempts": 3
+            }
+        },
+        {
+            "name": "zta",
+            "sim_count": 5,
+            "controls": {
+                "auth": true,
+                "posture": true,
+                "segmentation": true
+            },
+            "attack_profile": {
+                "enabled": true,
+                "type": "credential_stuffing",
+                "target_users": ["alice", "bob"],
+                "attempts": 3
+            }
+        }
+    ],
+    "output": {
+        "base_dir": "data/experiments",
+        "save_raw_events": true,
+        "save_metrics": true
+    }
+}
