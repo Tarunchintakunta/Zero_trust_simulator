@@ -7,6 +7,7 @@ This module runs experiments comparing baseline vs ZTA configurations.
 import argparse
 import json
 import logging
+import pandas as pd
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Union
@@ -139,9 +140,13 @@ class ExperimentRunner:
             metrics = self._run_scenario(scenario)
             results[scenario["name"]] = metrics
         
-        # Save overall results
+        # Save overall results as JSON
         with open(self.output_dir / "results.json", "w") as f:
             json.dump(results, f, indent=2)
+        
+        # Save results as CSV for analysis
+        df = pd.DataFrame.from_dict(results, orient='index')
+        df.to_csv(self.output_dir / "report.csv")
         
         return results
 

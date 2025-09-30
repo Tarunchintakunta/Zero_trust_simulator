@@ -1,0 +1,8 @@
+{
+  "type": "credential_stuffing",
+  "attempts": 5,
+  "seed": 1,
+  "target_users": ["alice", "bob"],
+  "target_resources": ["file1.txt", "file2.txt"],
+  "out": "data/attack_cred.jsonl"
+}

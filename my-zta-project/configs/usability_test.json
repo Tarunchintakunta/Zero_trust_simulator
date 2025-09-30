@@ -1,0 +1,7 @@
+{
+  "count": 10,
+  "seed": 2,
+  "users": ["alice", "bob", "carol"],
+  "devices": ["vm-2", "phone-1", "laptop-1"],
+  "out": "data/usability_test.csv"
+}

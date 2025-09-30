@@ -79,6 +79,9 @@ class ResultAnalyzer:
         
         for scenario, df in self.results.items():
             # Find ransomware events
+            if "filename" not in df.columns:
+                continue
+                
             ransomware = df[
                 (df["attack_type"] == "ransomware") &
                 (df["event"] == "file_write") &
@@ -254,14 +257,17 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(description="Analyze ZTA experiment results")
-    parser.add_argument("--experiment", type=str, required=True,
-                       help="Path to experiment directory")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--experiment", type=str,
+                      help="Path to experiment directory")
+    group.add_argument("--input", type=str,
+                      help="Path to experiment directory (alias for --experiment)")
     parser.add_argument("--output", type=str,
                        help="Output directory for analysis artifacts")
     
     args = parser.parse_args()
     
-    experiment_dir = Path(args.experiment)
+    experiment_dir = Path(args.experiment or args.input)
     output_dir = Path(args.output) if args.output else experiment_dir / "analysis"
     output_dir.mkdir(parents=True, exist_ok=True)
     
