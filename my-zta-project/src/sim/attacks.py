@@ -4,10 +4,15 @@ Zero Trust Architecture (ZTA) Attack Simulation Module
 This module simulates various attack patterns to evaluate ZTA effectiveness.
 """
 
+import argparse
+import json
 import random
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Dict, List, Optional
+from pathlib import Path
+from typing import Dict, List, Optional, Union
+
+from src.utils.config import load_config, merge_cli_args, set_seed, validate_config
 
 class AttackType(str, Enum):
     """Types of simulated attacks."""
@@ -15,6 +20,15 @@ class AttackType(str, Enum):
     LATERAL_MOVEMENT = "lateral_movement"
     DATA_EXFILTRATION = "data_exfiltration"
     RANSOMWARE = "ransomware"
+    
+    @classmethod
+    def from_str(cls, value: str) -> "AttackType":
+        """Create from string, with validation."""
+        try:
+            return cls(value.lower())
+        except ValueError:
+            valid = [t.value for t in cls]
+            raise ValueError(f"Invalid attack type. Must be one of: {valid}")
 
 class AttackPhase(str, Enum):
     """Attack kill chain phases."""
@@ -176,3 +190,77 @@ class AttackSimulator:
             events.append(event)
         
         return events
+
+def main():
+    """Main entry point for attack simulation."""
+    parser = argparse.ArgumentParser(description="Simulate ZTA attacks")
+    parser.add_argument("--config", type=str,
+                       help="Path to config JSON file")
+    parser.add_argument("--type", type=str, choices=[t.value for t in AttackType],
+                       help="Type of attack to simulate")
+    parser.add_argument("--target-users", nargs="+",
+                       help="List of users to target")
+    parser.add_argument("--target-resources", nargs="+",
+                       help="List of resources to target")
+    parser.add_argument("--attempts", type=int,
+                       help="Number of attack attempts")
+    parser.add_argument("--seed", type=int,
+                       help="Random seed for reproducibility")
+    parser.add_argument("--out", type=str,
+                       help="Output JSONL file path")
+    
+    args = parser.parse_args()
+    
+    # Load config if provided
+    config = {}
+    if args.config:
+        config = load_config(args.config)
+    
+    # Merge CLI args with config
+    config = merge_cli_args(config, args)
+    
+    # Validate required settings
+    required = ["type", "target_users", "target_resources", "attempts", "out"]
+    validate_config(config, required)
+    
+    # Set seed if provided
+    set_seed(config.get("seed"))
+    
+    # Create output directory if it doesn't exist
+    out_path = Path(config["out"])
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Initialize simulator
+    simulator = AttackSimulator(config.get("seed"))
+    
+    # Generate attack events based on type
+    attack_type = AttackType.from_str(config["type"])
+    if attack_type == AttackType.CREDENTIAL_STUFFING:
+        events = simulator.simulate_credential_stuffing(
+            target_users=config["target_users"],
+            attempts=config["attempts"]
+        )
+    elif attack_type == AttackType.LATERAL_MOVEMENT:
+        events = simulator.simulate_lateral_movement(
+            compromised_user=config["target_users"][0],
+            target_resources=config["target_resources"],
+            attempts=config["attempts"]
+        )
+    elif attack_type == AttackType.RANSOMWARE:
+        events = simulator.simulate_ransomware(
+            compromised_user=config["target_users"][0],
+            target_resources=config["target_resources"],
+            encryption_attempts=config["attempts"]
+        )
+    else:
+        raise ValueError(f"Unsupported attack type: {attack_type}")
+    
+    # Write events to JSONL file
+    with open(out_path, "w") as f:
+        for event in events:
+            f.write(json.dumps(event) + "\n")
+    
+    print(f"Generated {len(events)} attack events to {config['out']}")
+
+if __name__ == "__main__":
+    main()

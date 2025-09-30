@@ -4,37 +4,44 @@ Zero Trust Architecture (ZTA) Experiment Runner
 This module runs experiments comparing baseline vs ZTA configurations.
 """
 
+import argparse
 import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from src.logging.central_logger import get_logger
 from src.sim.attacks import AttackSimulator, AttackType
 from src.sim.run_sim import generate_events
+from src.utils.config import (
+    load_config,
+    merge_cli_args,
+    set_seed,
+    validate_config,
+    get_output_dir
+)
 
 class ExperimentRunner:
     """Runs ZTA experiments and collects results."""
     
-    def __init__(self, config_path: Path):
+    def __init__(self, config: Dict):
         """
         Initialize with experiment configuration.
         
         Args:
-            config_path: Path to experiment config JSON
+            config: Experiment configuration dict
         """
-        self.config_path = Path(config_path)
-        with open(config_path) as f:
-            self.config = json.load(f)
+        self.config = config
         
         # Set up logging
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
         
         # Create output directory
-        self.output_dir = Path(self.config["output"]["base_dir"]) / datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+        base_dir = self.config.get("output_dir") or self.config["output"]["base_dir"]
+        run_id = self.config.get("run_id", datetime.now().strftime("%Y%m%d_%H%M%S"))
+        self.output_dir = get_output_dir(base_dir, run_id)
         
         # Save config copy
         with open(self.output_dir / "config.json", "w") as f:
@@ -51,10 +58,17 @@ class ExperimentRunner:
         
         # Generate normal traffic
         self.logger.info(f"Generating {scenario['sim_count']} normal events for {scenario['name']}")
+        
+        # Apply mode override if provided
+        use_controls = (
+            self.config.get("mode") == "zta" if "mode" in self.config
+            else scenario["controls"]["auth"]
+        )
+        
         normal_events = generate_events(
             count=scenario["sim_count"],
             seed=self.config["seed"],
-            use_controls=scenario["controls"]["auth"]
+            use_controls=use_controls
         )
         
         # Log normal events
@@ -133,17 +147,38 @@ class ExperimentRunner:
 
 def main():
     """Main entry point for running experiments."""
-    import argparse
-    
     parser = argparse.ArgumentParser(description="Run ZTA experiments")
     parser.add_argument("--config", type=str, required=True,
                        help="Path to experiment config JSON")
+    parser.add_argument("--mode", choices=["baseline", "zta"],
+                       help="Override mode for all scenarios")
+    parser.add_argument("--run-id", type=str,
+                       help="Unique identifier for this run")
+    parser.add_argument("--seed", type=int,
+                       help="Random seed for reproducibility")
+    parser.add_argument("--output-dir", type=str,
+                       help="Base directory for outputs")
     
     args = parser.parse_args()
     
-    runner = ExperimentRunner(Path(args.config))
+    # Load config
+    config = load_config(args.config)
+    
+    # Merge CLI args
+    config = merge_cli_args(config, args)
+    
+    # Validate config
+    required = ["scenarios", "seed", "output"]
+    validate_config(config, required)
+    
+    # Set seed
+    set_seed(config["seed"])
+    
+    # Run experiment
+    runner = ExperimentRunner(config)
     results = runner.run()
     
+    # Print summary
     print("\nExperiment Results:")
     for scenario, metrics in results.items():
         print(f"\n{scenario}:")

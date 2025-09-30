@@ -15,6 +15,8 @@ from typing import Dict, List, Literal, Optional, Union
 
 from pydantic import BaseModel, Field
 
+from src.utils.config import load_config, merge_cli_args, set_seed, validate_config
+
 from src.controls.auth import authenticate
 from src.controls.posture import PostureChecker, PostureStatus
 from src.controls.segmentation import SegmentationEngine
@@ -167,23 +169,41 @@ def generate_events(
 def main():
     """Main entry point for the event generator."""
     parser = argparse.ArgumentParser(description="Generate synthetic ZTA events")
-    parser.add_argument("--count", type=int, default=25,
+    parser.add_argument("--config", type=str,
+                       help="Path to config JSON file")
+    parser.add_argument("--count", type=int,
                        help="Number of events to generate")
-    parser.add_argument("--seed", type=int, default=None,
+    parser.add_argument("--seed", type=int,
                        help="Random seed for reproducibility")
-    parser.add_argument("--out", type=str, required=True,
+    parser.add_argument("--out", type=str,
                        help="Output JSONL file path")
-    parser.add_argument("--no-controls", action="store_true",
-                       help="Disable ZTA controls (baseline mode)")
+    parser.add_argument("--mode", choices=["baseline", "zta"],
+                       help="Simulation mode (baseline or zta)")
     
     args = parser.parse_args()
     
+    # Load config if provided
+    config = {}
+    if args.config:
+        config = load_config(args.config)
+    
+    # Merge CLI args with config
+    config = merge_cli_args(config, args)
+    
+    # Validate required settings
+    required = ["count", "out"]
+    validate_config(config, required)
+    
+    # Set seed if provided
+    set_seed(config.get("seed"))
+    
     # Create output directory if it doesn't exist
-    out_path = Path(args.out)
+    out_path = Path(config["out"])
     out_path.parent.mkdir(parents=True, exist_ok=True)
     
     # Generate and validate events
-    events = generate_events(args.count, args.seed, not args.no_controls)
+    use_controls = config.get("mode", "baseline") == "zta"
+    events = generate_events(config["count"], config.get("seed"), use_controls)
     validated_events = [ZTAEvent(**event).model_dump() for event in events]
     
     # Write events to JSONL file
@@ -191,7 +211,7 @@ def main():
         for event in validated_events:
             f.write(json.dumps(event) + "\n")
     
-    print(f"Generated {args.count} events to {args.out}")
+    print(f"Generated {config['count']} events to {config['out']}")
 
 if __name__ == "__main__":
     main()
