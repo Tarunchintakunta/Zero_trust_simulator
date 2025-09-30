@@ -58,14 +58,20 @@ python -m analysis.scripts.analyze_results --input data/experiments/verify_zta -
 python -m src.sim.usability --count 10 --out data/usability_test.csv --seed 2
 ```
 
-### 4. Docker Verification
+### 4. Run Reproducible Experiments
 
 ```bash
-# Build image
-docker build -t zta-sim -f infra/Dockerfile .
+# Generate baseline events
+python -m src.sim.run_sim --count 5 --mode baseline --seed 1 --out data/test_baseline.jsonl
 
-# Run experiment
-docker run --rm -v "$(pwd)/data:/app/data" zta-sim
+# Generate ZTA events
+python -m src.sim.run_sim --count 5 --mode zta --seed 1 --out data/test_zta.jsonl
+
+# Run full experiment
+python -m src.sim.experiment --config configs/sample_experiment.json --mode zta --run-id test_run --seed 1
+
+# Run usability simulation
+python -m src.sim.usability --count 10 --user test_user --device test_laptop --seed 2 --out data/usability_test.csv
 ```
 
 ## Acceptance Criteria
@@ -76,15 +82,15 @@ docker run --rm -v "$(pwd)/data:/app/data" zta-sim
    - No linting errors
 
 2. Simulation:
-   - Baseline events generated
-   - ZTA experiment runs
-   - Analysis produces report
-   - Usability metrics collected
+   - Baseline events generated with fixed seed
+   - ZTA experiment runs reproducibly
+   - Analysis produces consistent reports
+   - Usability metrics collected and analyzed
 
-3. Docker:
-   - Image builds successfully
-   - Container runs experiment
-   - Results written to mounted volume
+3. Reproducibility:
+   - All experiments reproducible with fixed seeds
+   - Results consistent across runs
+   - Clear documentation of parameters
 
 ## Troubleshooting
 

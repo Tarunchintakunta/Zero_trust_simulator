@@ -15,7 +15,7 @@ setup(
         "jsonschema>=4.19.0",
         "requests>=2.31.0",
         "python-dotenv>=1.0.0",
-        "typing-extensions>=4.7.0"
+        "typing-extensions>=4.7.0",
     ],
     python_requires=">=3.11",
 )
