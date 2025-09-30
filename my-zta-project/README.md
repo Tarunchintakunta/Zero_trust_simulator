@@ -20,6 +20,8 @@ graph LR
 
 ## Quick Start
 
+This project can be run fully using Python virtual environments and the provided requirements.txt. Docker was previously supported but is no longer required.
+
 1. Create a virtual environment:
 ```bash
 python -m venv venv
@@ -29,16 +31,28 @@ source venv/bin/activate  # or `venv\Scripts\activate` on Windows
 2. Install dependencies:
 ```bash
 pip install -r requirements.txt
+pip install -e .  # Install in development mode
 ```
 
 3. Generate sample events:
 ```bash
-python -m src.sim.run_sim --count 25 --out data/sample_logs.jsonl
+python -m src.sim.run_sim --count 5 --mode zta --seed 1 --out data/sample_logs.jsonl
 ```
 
-4. Run tests:
+4. Run an experiment:
 ```bash
-pytest -v
+python -m src.sim.experiment --config configs/sample_experiment.json --mode zta --run-id test_run --seed 1
+```
+
+5. Run tests:
+```bash
+pytest -q --cov=src --cov-report=term-missing
+```
+
+6. Run linting:
+```bash
+flake8 src tests
+mypy src tests
 ```
 
 ## Project Structure

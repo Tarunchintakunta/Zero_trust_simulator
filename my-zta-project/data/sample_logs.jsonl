@@ -1,0 +1,5 @@
+{"timestamp": "2025-09-30T17:27:37.767799+00:00", "event": "login", "user": "carol", "device": "laptop-1", "success": true, "method": "password", "device_posture": "non-compliant", "ip": "10.0.0.154", "resource": null}
+{"timestamp": "2025-09-30T17:27:37.768001+00:00", "event": "access", "user": "alice", "device": "vm-2", "success": true, "method": "password", "device_posture": "compliant", "ip": "10.0.0.113", "resource": "/app/files"}
+{"timestamp": "2025-09-30T17:27:37.768006+00:00", "event": "file_write", "user": "alice", "device": "vm-2", "success": true, "method": "password", "device_posture": "compliant", "ip": "10.0.0.117", "resource": "/app/files"}
+{"timestamp": "2025-09-30T17:27:37.768009+00:00", "event": "login", "user": "alice", "device": "phone-1", "success": true, "method": "mfa", "device_posture": "compliant", "ip": "10.0.0.251", "resource": null}
+{"timestamp": "2025-09-30T17:27:37.768011+00:00", "event": "login", "user": "bob", "device": "laptop-1", "success": true, "method": "password", "device_posture": "compliant", "ip": "10.0.0.119", "resource": null}

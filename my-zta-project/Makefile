@@ -1,4 +1,4 @@
-.PHONY: venv install clean test lint run-sim experiment docker-build docker-run
+.PHONY: venv install clean test lint run-sim experiment
 
 # Python settings
 PYTHON = python3.11
@@ -35,7 +35,7 @@ clean:
 
 # Run tests
 test:
-	$(BIN)/pytest -v --cov=src
+	$(BIN)/pytest -q --cov=src --cov-report=term-missing
 
 # Run linting
 lint:
@@ -49,11 +49,11 @@ format:
 
 # Run simulation
 run-sim:
-	$(BIN)/python -m src.sim.run_sim --count 25 --out $(OUTPUT)
+	$(BIN)/python -m src.sim.run_sim --count 5 --mode zta --seed 1 --out $(OUTPUT)
 
 # Run experiment
 experiment:
-	$(BIN)/python -m src.sim.experiment --config $(CONFIG)
+	$(BIN)/python -m src.sim.experiment --config $(CONFIG) --mode zta --run-id test_run --seed 1
 
 # Run analysis
 analyze:
@@ -65,13 +65,6 @@ report:
 
 # Run full experiment pipeline
 pipeline: experiment analyze report
-
-# Docker commands
-docker-build:
-	docker-compose -f infra/docker-compose.yml build
-
-docker-run:
-	docker-compose -f infra/docker-compose.yml up
 
 # Development setup
 setup: venv install
@@ -92,6 +85,4 @@ help:
 	@echo "  analyze     - Run analysis"
 	@echo "  report      - Generate report"
 	@echo "  pipeline    - Run full experiment pipeline"
-	@echo "  docker-build- Build Docker image"
-	@echo "  docker-run  - Run in Docker"
 	@echo "  setup       - Set up development environment"

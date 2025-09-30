@@ -35,7 +35,7 @@ jobs:
         
     - name: Run tests
       run: |
-        pytest -v --maxfail=1 --cov=src --cov-report=term-missing
+        pytest -q --cov=src --cov-report=term-missing
         
     - name: Check coverage
       run: |
@@ -43,43 +43,17 @@ jobs:
         
     - name: Run sample simulation
       run: |
-        python -m src.sim.run_sim --count 10 --out data/test_events.jsonl
+        python -m src.sim.run_sim --count 5 --mode zta --seed 1 --out data/test_events.jsonl
         test -f data/test_events.jsonl
         
-  docker:
-    runs-on: ubuntu-latest
-    needs: test
-    
-    steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-      
-    - name: Build Docker image
-      uses: docker/build-push-action@v4
-      with:
-        context: .
-        file: infra/Dockerfile
-        tags: zta-sim:latest
-        load: true
-        push: false
-        
-    - name: Run Docker smoke test
+    - name: Run sample experiment
       run: |
-        mkdir -p data/experiments
-        docker run --rm \
-          -v ${{ github.workspace }}/data:/app/data \
-          -e RUN_COUNT=5 \
-          zta-sim
+        python -m src.sim.experiment --config configs/sample_experiment.json --mode zta --run-id ci_test --seed 1
+        test -d data/experiments/ci_test
+        test -f data/experiments/ci_test/results.json
         
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
         name: experiment-results
         path: data/experiments/
-        
-    - name: Check experiment outputs
-      run: |
-        test -d data/experiments
-        find data/experiments -type f -name "results.json" | grep . > /dev/null
