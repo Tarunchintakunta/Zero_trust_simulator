@@ -4,11 +4,16 @@ Zero Trust Architecture (ZTA) Usability Simulation
 This module simulates user interactions and measures usability metrics.
 """
 
+import argparse
+import json
 import random
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Dict, List, Optional
+from pathlib import Path
+from typing import Dict, List, Optional, Union
+
+from src.utils.config import load_config, merge_cli_args, set_seed, validate_config
 
 class TaskType(str, Enum):
     """Types of user tasks."""
@@ -202,3 +207,70 @@ def calculate_sus_score(results: List[TaskResult]) -> float:
     # Convert satisfaction scores (1-5) to SUS-like scores (0-100)
     scores = [r.satisfaction_score * 20 for r in results]
     return sum(scores) / len(scores)
+
+def main():
+    """Main entry point for usability simulation."""
+    parser = argparse.ArgumentParser(description="Run usability simulation")
+    parser.add_argument("--config", type=str,
+                       help="Path to config JSON file")
+    parser.add_argument("--count", type=int,
+                       help="Number of tasks to simulate")
+    parser.add_argument("--user", type=str,
+                       help="User to simulate")
+    parser.add_argument("--device", type=str,
+                       help="Device to simulate")
+    parser.add_argument("--seed", type=int,
+                       help="Random seed for reproducibility")
+    parser.add_argument("--out", type=str,
+                       help="Output CSV file path")
+    
+    args = parser.parse_args()
+    
+    # Load config if provided
+    config = {}
+    if args.config:
+        config = load_config(args.config)
+    
+    # Merge CLI args with config
+    config = merge_cli_args(config, args)
+    
+    # Validate required settings
+    required = ["count", "user", "device", "out"]
+    validate_config(config, required)
+    
+    # Set seed if provided
+    set_seed(config.get("seed"))
+    
+    # Create output directory if it doesn't exist
+    out_path = Path(config["out"])
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Run simulation
+    simulator = UsabilitySimulator(config.get("seed"))
+    results = simulator.simulate_workday(
+        user=config["user"],
+        device=config["device"],
+        task_count=config["count"]
+    )
+    
+    # Calculate metrics
+    sus_score = calculate_sus_score(results)
+    
+    # Write results to CSV
+    with open(out_path, "w") as f:
+        # Write header
+        f.write("task_type,duration_seconds,success,friction_events,satisfaction_score\n")
+        
+        # Write results
+        for result in results:
+            f.write(f"{result.task.type},"
+                   f"{result.duration.total_seconds()},"
+                   f"{result.success},"
+                   f"{len(result.friction_events)},"
+                   f"{result.satisfaction_score}\n")
+    
+    print(f"Generated {len(results)} task results to {config['out']}")
+    print(f"Overall SUS score: {sus_score:.1f}/100")
+
+if __name__ == "__main__":
+    main()
