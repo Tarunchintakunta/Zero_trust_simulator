@@ -3,11 +3,29 @@ Tests for the ZTA event generator.
 """
 
 import json
+import os
+import sys
 from pathlib import Path
 
 import pytest
 
-from src.sim.run_sim import generate_events, ZTAEvent
+from src.sim.run_sim import generate_events, ZTAEvent, main
+
+@pytest.fixture
+def sim_config(tmp_path):
+    """Create a sample simulation config."""
+    config = {
+        "mode": "zta",
+        "count": 5,
+        "seed": 42,
+        "out": str(tmp_path / "test_events.jsonl")
+    }
+    
+    config_path = tmp_path / "sim_config.json"
+    with open(config_path, "w") as f:
+        json.dump(config, f)
+    
+    return config_path
 
 def test_generate_events_count():
     """Test that the correct number of events are generated."""
@@ -84,3 +102,46 @@ def test_reproducibility():
     events2_json = [json.dumps(e, sort_keys=True) for e in events2]
     
     assert events1_json == events2_json
+
+def test_config_based_execution(sim_config, monkeypatch, capsys):
+    """Test running simulation with config file."""
+    # Mock sys.argv
+    test_args = ["run_sim.py", "--config", str(sim_config)]
+    monkeypatch.setattr(sys, "argv", test_args)
+    
+    # Run main
+    main()
+    
+    # Check output file exists
+    config = json.loads(Path(sim_config).read_text())
+    out_path = Path(config["out"])
+    assert out_path.exists()
+    
+    # Check event count
+    events = [json.loads(line) for line in out_path.read_text().splitlines()]
+    assert len(events) == config["count"]
+    
+    # Check output message
+    captured = capsys.readouterr()
+    assert f"Generated {config['count']} events to {config['out']}" in captured.out
+
+def test_cli_override_config(sim_config, monkeypatch, tmp_path):
+    """Test CLI args override config values."""
+    out_file = tmp_path / "cli_override.jsonl"
+    test_args = [
+        "run_sim.py",
+        "--config", str(sim_config),
+        "--count", "10",
+        "--out", str(out_file)
+    ]
+    monkeypatch.setattr(sys, "argv", test_args)
+    
+    # Run main
+    main()
+    
+    # Check output file exists
+    assert out_file.exists()
+    
+    # Check event count matches CLI value
+    events = [json.loads(line) for line in out_file.read_text().splitlines()]
+    assert len(events) == 10
