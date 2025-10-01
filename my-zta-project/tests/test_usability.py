@@ -119,9 +119,9 @@ def test_config_based_execution(usability_config, monkeypatch, capsys):
         assert len(rows) == config["count"]
 
         for row in rows:
-            assert float(row["satisfaction_score"]) >= 1.0
-            assert float(row["satisfaction_score"]) <= 5.0
-            assert float(row["duration_seconds"]) > 0
+            assert float(row["satisfaction"]) >= 1.0
+            assert float(row["satisfaction"]) <= 5.0
+            assert float(row["duration"]) > 0
 
     # Check output message
     captured = capsys.readouterr()
