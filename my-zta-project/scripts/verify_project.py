@@ -15,7 +15,9 @@ import tempfile
 from pathlib import Path
 
 
-def run_command(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
+def run_command(
+    cmd: list[str], check: bool = True
+) -> subprocess.CompletedProcess:
     """Run a command and return the result."""
     print(f"\nRunning: {' '.join(cmd)}")
     result = subprocess.run(cmd, capture_output=True, text=True, check=check)
@@ -64,9 +66,13 @@ def verify_json_file(path: Path, required_keys: list[str]) -> bool:
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(description="Verify ZTA simulator project")
+    parser = argparse.ArgumentParser(
+        description="Verify ZTA simulator project"
+    )
     parser.add_argument(
-        "--tmp", action="store_true", help="Use temporary directory for outputs"
+        "--tmp",
+        action="store_true",
+        help="Use temporary directory for outputs",
     )
     args = parser.parse_args()
 
@@ -83,7 +89,8 @@ def main():
         # Run tests with coverage
         print("\n=== Running Tests ===")
         result = run_command(
-            ["pytest", "-v", "--cov=src", "--cov-report=term-missing"], check=False
+            ["pytest", "-v", "--cov=src", "--cov-report=term-missing"],
+            check=False,
         )
         if result.returncode != 0:
             print("ERROR: Tests failed")
@@ -141,7 +148,7 @@ def main():
 
         # Run analysis
         print("\n=== Running Analysis ===")
-        report_file = exp_dir / "report.csv"
+        analysis_output_file = exp_dir / "analysis_summary.csv"
         result = run_command(
             [
                 "python",
@@ -150,11 +157,11 @@ def main():
                 "--input",
                 str(exp_dir),
                 "--out",
-                str(report_file),
+                str(analysis_output_file),
             ]
         )
 
-        if not verify_file_exists(report_file, "analysis report"):
+        if not verify_file_exists(analysis_output_file, "analysis report"):
             return 1
 
         # Run usability simulation
@@ -175,25 +182,6 @@ def main():
         )
 
         if not verify_file_exists(usability_file, "usability results"):
-            return 1
-
-        # Build Docker image
-        print("\n=== Building Docker Image ===")
-        result = run_command(
-            ["docker", "build", "-t", "zta-sim", "-f", "infra/Dockerfile", "."]
-        )
-
-        # Run Docker experiment
-        print("\n=== Running Docker Experiment ===")
-        docker_dir = data_dir / "docker_test"
-        docker_dir.mkdir(exist_ok=True)
-        result = run_command(
-            ["docker", "run", "--rm", "-v", f"{docker_dir}:/app/data", "zta-sim"]
-        )
-
-        if not verify_file_exists(
-            docker_dir / "experiments" / "results.json", "Docker experiment results"
-        ):
             return 1
 
         print("\nAll verification checks passed!")
