@@ -130,7 +130,9 @@ class ResultAnalyzer:
                 success = auth_events[auth_events["success"]].shape[0]
                 rates[scenario] = {
                     "success_rate": success / total if total > 0 else 0.0,
-                    "failure_rate": (total - success) / total if total > 0 else 0.0,
+                    "failure_rate": (
+                        (total - success) / total if total > 0 else 0.0
+                    ),
                 }
 
         return rates
@@ -247,8 +249,12 @@ class ResultAnalyzer:
                 "lateral_movement_success": movement.get(scenario, {}).get(
                     "successful", 0
                 ),
-                "auth_success_rate": auth.get(scenario, {}).get("success_rate", pd.NA),
-                "auth_failure_rate": auth.get(scenario, {}).get("failure_rate", pd.NA),
+                "auth_success_rate": auth.get(scenario, {}).get(
+                    "success_rate", pd.NA
+                ),
+                "auth_failure_rate": auth.get(scenario, {}).get(
+                    "failure_rate", pd.NA
+                ),
             }
             summary.append(row)
 
@@ -260,9 +266,13 @@ def main():
     """Main entry point for analysis."""
     import argparse
 
-    parser = argparse.ArgumentParser(description="Analyze ZTA experiment results")
+    parser = argparse.ArgumentParser(
+        description="Analyze ZTA experiment results"
+    )
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--experiment", type=str, help="Path to experiment directory")
+    group.add_argument(
+        "--experiment", type=str, help="Path to experiment directory"
+    )
     group.add_argument(
         "--input",
         type=str,
@@ -275,7 +285,9 @@ def main():
     args = parser.parse_args()
 
     experiment_dir = Path(args.experiment or args.input)
-    output_dir = Path(args.output) if args.output else experiment_dir / "analysis"
+    output_dir = (
+        Path(args.output) if args.output else experiment_dir / "analysis"
+    )
     output_dir.mkdir(parents=True, exist_ok=True)
 
     analyzer = ResultAnalyzer(experiment_dir)
