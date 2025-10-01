@@ -272,9 +272,7 @@ def main():
     # Write results to CSV
     with open(out_path, "w") as f:
         # Write header
-        f.write(
-            "task_type,duration,success,friction,satisfaction\n"
-        )
+        f.write("task_type,duration,success,friction,satisfaction\n")
 
         # Write results
         for result in results:
