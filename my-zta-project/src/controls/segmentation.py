@@ -1,7 +1,7 @@
 """
-Zero Trust Architecture (ZTA) Micro-segmentation Module
+ZTA Micro-segmentation Module
 
-This module implements micro-segmentation policies to control access to resources
+This module implements micro-segmentation policies to control resource access
 based on user roles and device contexts.
 """
 
@@ -57,7 +57,11 @@ class SegmentationEngine:
                 require_compliant=True,
             ),
             "/app/files": AccessPolicy(
-                allowed_roles={UserRole.ADMIN, UserRole.DEVELOPER, UserRole.ANALYST},
+                allowed_roles={
+                    UserRole.ADMIN,
+                    UserRole.DEVELOPER,
+                    UserRole.ANALYST,
+                },
                 allowed_devices={"laptop-1", "phone-1", "vm-2"},
                 require_mfa=False,
                 require_compliant=True,
@@ -71,7 +75,12 @@ class SegmentationEngine:
         }
 
     def check_access(
-        self, user: str, device: str, resource: str, used_mfa: bool, is_compliant: bool
+        self,
+        user: str,
+        device: str,
+        resource: str,
+        used_mfa: bool,
+        is_compliant: bool,
     ) -> tuple[bool, Optional[str]]:
         """
         Check if access should be granted based on policies.

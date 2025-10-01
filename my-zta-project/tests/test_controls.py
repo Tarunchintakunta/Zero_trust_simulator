@@ -2,10 +2,6 @@
 Tests for ZTA control modules.
 """
 
-from datetime import datetime, timedelta
-
-import pytest
-
 from src.controls.auth import authenticate, verify_mfa, verify_password
 from src.controls.posture import PostureChecker, PostureStatus
 from src.controls.segmentation import SegmentationEngine, UserRole

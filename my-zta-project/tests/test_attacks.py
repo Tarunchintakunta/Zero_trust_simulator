@@ -50,7 +50,9 @@ def test_lateral_movement():
     """Test lateral movement attack generation."""
     simulator = AttackSimulator(seed=42)
     events = simulator.simulate_lateral_movement(
-        compromised_user="alice", target_resources=["/app/db", "/app/files"], attempts=5
+        compromised_user="alice",
+        target_resources=["/app/db", "/app/files"],
+        attempts=5,
     )
 
     assert len(events) == 5
@@ -66,7 +68,9 @@ def test_ransomware():
     """Test ransomware attack generation."""
     simulator = AttackSimulator(seed=42)
     events = simulator.simulate_ransomware(
-        compromised_user="alice", target_resources=["/app/files"], encryption_attempts=5
+        compromised_user="alice",
+        target_resources=["/app/files"],
+        encryption_attempts=5,
     )
 
     # Should have 1 drop event + encryption attempts
@@ -77,7 +81,8 @@ def test_ransomware():
     assert drop_event["event"] == "file_write"
     assert drop_event["attack_phase"] == AttackPhase.INITIAL_ACCESS
     assert any(
-        pattern in drop_event["filename"] for pattern in simulator._malware_patterns
+        pattern in drop_event["filename"]
+        for pattern in simulator._malware_patterns
     )
 
     # Check encryption events
@@ -95,7 +100,10 @@ def test_attack_type_validation():
 
     # Should work with case insensitive
     assert AttackType.from_str("RANSOMWARE") == AttackType.RANSOMWARE
-    assert AttackType.from_str("credential_stuffing") == AttackType.CREDENTIAL_STUFFING
+    assert (
+        AttackType.from_str("credential_stuffing")
+        == AttackType.CREDENTIAL_STUFFING
+    )
 
 
 def test_reproducibility():
@@ -132,11 +140,16 @@ def test_config_based_execution(attack_config, monkeypatch, capsys):
 
     # Load and check events
     events = [json.loads(line) for line in out_path.read_text().splitlines()]
-    assert len(events) == config["attempts"] + 1  # +1 for ransomware drop event
+    assert (
+        len(events) == config["attempts"] + 1
+    )  # +1 for ransomware drop event
 
     # Check output message
     captured = capsys.readouterr()
-    assert f"Generated {len(events)} attack events to {config['out']}" in captured.out
+    assert (
+        f"Generated {len(events)} attack events to {config['out']}"
+        in captured.out
+    )
 
 
 def test_cli_override_config(attack_config, monkeypatch, tmp_path):
@@ -164,4 +177,6 @@ def test_cli_override_config(attack_config, monkeypatch, tmp_path):
     # Check event count and type
     events = [json.loads(line) for line in out_file.read_text().splitlines()]
     assert len(events) == 10
-    assert all(e["attack_type"] == AttackType.CREDENTIAL_STUFFING for e in events)
+    assert all(
+        e["attack_type"] == AttackType.CREDENTIAL_STUFFING for e in events
+    )

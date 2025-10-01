@@ -36,7 +36,9 @@ def load_config(config_path: Union[str, Path]) -> Dict[str, Any]:
         return json.load(f)
 
 
-def merge_cli_args(config: Dict[str, Any], args: argparse.Namespace) -> Dict[str, Any]:
+def merge_cli_args(
+    config: Dict[str, Any], args: argparse.Namespace
+) -> Dict[str, Any]:
     """
     Merge CLI arguments into config, with CLI taking precedence.
 
@@ -50,7 +52,9 @@ def merge_cli_args(config: Dict[str, Any], args: argparse.Namespace) -> Dict[str
     merged = config.copy()
 
     # Convert args to dict, excluding None values
-    cli_dict = {k: v for k, v in vars(args).items() if v is not None and k != "config"}
+    cli_dict = {
+        k: v for k, v in vars(args).items() if v is not None and k != "config"
+    }
 
     # Update config with CLI values
     merged.update(cli_dict)

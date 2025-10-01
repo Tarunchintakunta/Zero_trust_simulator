@@ -3,8 +3,6 @@ Common test fixtures for ZTA simulator.
 """
 
 import json
-from datetime import datetime, timedelta
-from pathlib import Path
 
 import pytest
 
@@ -20,7 +18,11 @@ def sample_config(tmp_path):
             {
                 "name": "baseline",
                 "sim_count": 5,
-                "controls": {"auth": False, "posture": False, "segmentation": False},
+                "controls": {
+                    "auth": False,
+                    "posture": False,
+                    "segmentation": False,
+                },
                 "attack_profile": {
                     "enabled": True,
                     "type": "credential_stuffing",
@@ -31,7 +33,11 @@ def sample_config(tmp_path):
             {
                 "name": "zta",
                 "sim_count": 5,
-                "controls": {"auth": True, "posture": True, "segmentation": True},
+                "controls": {
+                    "auth": True,
+                    "posture": True,
+                    "segmentation": True,
+                },
                 "attack_profile": {
                     "enabled": True,
                     "type": "credential_stuffing",

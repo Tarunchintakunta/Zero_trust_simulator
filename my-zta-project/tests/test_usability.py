@@ -10,7 +10,12 @@ from pathlib import Path
 
 import pytest
 
-from src.sim.usability import TaskType, UsabilitySimulator, calculate_sus_score, main
+from src.sim.usability import (
+    TaskType,
+    UsabilitySimulator,
+    calculate_sus_score,
+    main,
+)
 
 
 @pytest.fixture
@@ -59,7 +64,9 @@ def test_task_simulation():
 def test_workday_simulation():
     """Test full workday simulation."""
     simulator = UsabilitySimulator(seed=42)
-    results = simulator.simulate_workday(user="alice", device="laptop-1", task_count=5)
+    results = simulator.simulate_workday(
+        user="alice", device="laptop-1", task_count=5
+    )
 
     assert len(results) == 5
     assert all(1.0 <= r.satisfaction_score <= 5.0 for r in results)
@@ -69,7 +76,9 @@ def test_workday_simulation():
 def test_sus_score():
     """Test SUS score calculation."""
     simulator = UsabilitySimulator(seed=42)
-    results = simulator.simulate_workday(user="alice", device="laptop-1", task_count=5)
+    results = simulator.simulate_workday(
+        user="alice", device="laptop-1", task_count=5
+    )
 
     score = calculate_sus_score(results)
     assert 0.0 <= score <= 100.0

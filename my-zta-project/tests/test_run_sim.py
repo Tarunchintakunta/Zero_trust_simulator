@@ -3,7 +3,6 @@ Tests for the ZTA event generator.
 """
 
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -136,7 +135,10 @@ def test_config_based_execution(sim_config, monkeypatch, capsys):
 
     # Check output message
     captured = capsys.readouterr()
-    assert f"Generated {config['count']} events to {config['out']}" in captured.out
+    assert (
+        f"Generated {config['count']} events to {config['out']}"
+        in captured.out
+    )
 
 
 def test_cli_override_config(sim_config, monkeypatch, tmp_path):

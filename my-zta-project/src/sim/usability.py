@@ -5,15 +5,19 @@ This module simulates user interactions and measures usability metrics.
 """
 
 import argparse
-import json
 import random
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import List, Optional
 
-from src.utils.config import load_config, merge_cli_args, set_seed, validate_config
+from src.utils.config import (
+    load_config,
+    merge_cli_args,
+    set_seed,
+    validate_config,
+)
 
 
 class TaskType(str, Enum):
@@ -116,7 +120,9 @@ class UsabilitySimulator:
             expected_duration=template.expected_duration,
         )
 
-    def _simulate_task_attempt(self, task: Task, controls_enabled: bool) -> TaskResult:
+    def _simulate_task_attempt(
+        self, task: Task, controls_enabled: bool
+    ) -> TaskResult:
         """Simulate a single task attempt."""
         friction_events = []
 
@@ -165,7 +171,11 @@ class UsabilitySimulator:
         )
 
     def simulate_workday(
-        self, user: str, device: str, task_count: int, controls_enabled: bool = True
+        self,
+        user: str,
+        device: str,
+        task_count: int,
+        controls_enabled: bool = True,
     ) -> List[TaskResult]:
         """
         Simulate a user's workday.
@@ -183,7 +193,9 @@ class UsabilitySimulator:
 
         # Always start with login
         login_task = self._generate_task(user, device, TaskType.LOGIN)
-        results.append(self._simulate_task_attempt(login_task, controls_enabled))
+        results.append(
+            self._simulate_task_attempt(login_task, controls_enabled)
+        )
 
         # Generate random tasks for the day
         for _ in range(task_count - 1):
@@ -215,10 +227,14 @@ def main():
     """Main entry point for usability simulation."""
     parser = argparse.ArgumentParser(description="Run usability simulation")
     parser.add_argument("--config", type=str, help="Path to config JSON file")
-    parser.add_argument("--count", type=int, help="Number of tasks to simulate")
+    parser.add_argument(
+        "--count", type=int, help="Number of tasks to simulate"
+    )
     parser.add_argument("--user", type=str, help="User to simulate")
     parser.add_argument("--device", type=str, help="Device to simulate")
-    parser.add_argument("--seed", type=int, help="Random seed for reproducibility")
+    parser.add_argument(
+        "--seed", type=int, help="Random seed for reproducibility"
+    )
     parser.add_argument("--out", type=str, help="Output CSV file path")
 
     args = parser.parse_args()
@@ -245,7 +261,9 @@ def main():
     # Run simulation
     simulator = UsabilitySimulator(config.get("seed"))
     results = simulator.simulate_workday(
-        user=config["user"], device=config["device"], task_count=config["count"]
+        user=config["user"],
+        device=config["device"],
+        task_count=config["count"],
     )
 
     # Calculate metrics
@@ -255,7 +273,7 @@ def main():
     with open(out_path, "w") as f:
         # Write header
         f.write(
-            "task_type,duration_seconds,success,friction_events,satisfaction_score\n"
+            "task_type,duration,success,friction,satisfaction\n"
         )
 
         # Write results

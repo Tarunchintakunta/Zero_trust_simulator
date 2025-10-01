@@ -4,8 +4,7 @@ Tests for analysis scripts.
 
 import json
 import sys
-from datetime import datetime, timedelta
-from pathlib import Path
+from datetime import timedelta
 
 import pandas as pd
 import pytest
@@ -138,7 +137,11 @@ def test_auth_rates(experiment_dir):
         assert 0.0 <= rates[scenario]["success_rate"] <= 1.0
         assert 0.0 <= rates[scenario]["failure_rate"] <= 1.0
         assert (
-            abs(rates[scenario]["success_rate"] + rates[scenario]["failure_rate"] - 1.0)
+            abs(
+                rates[scenario]["success_rate"]
+                + rates[scenario]["failure_rate"]
+                - 1.0
+            )
             < 1e-6
         )
 

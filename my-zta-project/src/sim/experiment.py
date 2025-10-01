@@ -9,8 +9,7 @@ import json
 import logging
 import pandas as pd
 from datetime import datetime
-from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict
 
 from src.logging.central_logger import get_logger
 from src.sim.attacks import AttackSimulator, AttackType
@@ -41,8 +40,12 @@ class ExperimentRunner:
         self.logger = logging.getLogger(__name__)
 
         # Create output directory
-        base_dir = self.config.get("output_dir") or self.config["output"]["base_dir"]
-        run_id = self.config.get("run_id", datetime.now().strftime("%Y%m%d_%H%M%S"))
+        base_dir = (
+            self.config.get("output_dir") or self.config["output"]["base_dir"]
+        )
+        run_id = self.config.get(
+            "run_id", datetime.now().strftime("%Y%m%d_%H%M%S")
+        )
         self.output_dir = get_output_dir(base_dir, run_id)
 
         # Save config copy
@@ -60,7 +63,7 @@ class ExperimentRunner:
 
         # Generate normal traffic
         self.logger.info(
-            f"Generating {scenario['sim_count']} normal events for {scenario['name']}"
+            f"Gen {scenario['sim_count']} events for {scenario['name']}"
         )
 
         # Apply mode override if provided
@@ -87,7 +90,7 @@ class ExperimentRunner:
 
             if attack_profile["type"] == AttackType.CREDENTIAL_STUFFING:
                 self.logger.info(
-                    f"Simulating credential stuffing attack in {scenario['name']}"
+                    f"Cred stuffing in {scenario['name']}"
                 )
                 attack_events = attack_sim.simulate_credential_stuffing(
                     target_users=attack_profile["target_users"],
@@ -95,15 +98,19 @@ class ExperimentRunner:
                 )
 
             elif attack_profile["type"] == AttackType.LATERAL_MOVEMENT:
-                self.logger.info(f"Simulating lateral movement in {scenario['name']}")
+                self.logger.info(
+                    f"Lateral movement in {scenario['name']}"
+                )
                 attack_events = attack_sim.simulate_lateral_movement(
                     compromised_user=attack_profile["compromised_user"],
                     target_resources=attack_profile["target_resources"],
-                    attempts=attack_profile["attempts"],
+                    attempts=attack_profile["attempts"]
                 )
 
             elif attack_profile["type"] == AttackType.RANSOMWARE:
-                self.logger.info(f"Simulating ransomware attack in {scenario['name']}")
+                self.logger.info(
+                    f"Ransomware attack in {scenario['name']}"
+                )
                 attack_events = attack_sim.simulate_ransomware(
                     compromised_user=attack_profile["compromised_user"],
                     target_resources=attack_profile["target_resources"],
@@ -123,7 +130,9 @@ class ExperimentRunner:
             "total_events": total_events,
             "successful_events": successful_events,
             "failed_events": failed_events,
-            "success_rate": successful_events / total_events if total_events > 0 else 0,
+            "success_rate": (
+                successful_events / total_events if total_events > 0 else 0
+            ),
         }
 
         # Save metrics
@@ -161,14 +170,25 @@ def main():
     """Main entry point for running experiments."""
     parser = argparse.ArgumentParser(description="Run ZTA experiments")
     parser.add_argument(
-        "--config", type=str, required=True, help="Path to experiment config JSON"
+        "--config",
+        type=str,
+        required=True,
+        help="Path to experiment config JSON",
     )
     parser.add_argument(
-        "--mode", choices=["baseline", "zta"], help="Override mode for all scenarios"
+        "--mode",
+        choices=["baseline", "zta"],
+        help="Override mode for all scenarios",
     )
-    parser.add_argument("--run-id", type=str, help="Unique identifier for this run")
-    parser.add_argument("--seed", type=int, help="Random seed for reproducibility")
-    parser.add_argument("--output-dir", type=str, help="Base directory for outputs")
+    parser.add_argument(
+        "--run-id", type=str, help="Unique identifier for this run"
+    )
+    parser.add_argument(
+        "--seed", type=int, help="Random seed for reproducibility"
+    )
+    parser.add_argument(
+        "--output-dir", type=str, help="Base directory for outputs"
+    )
 
     args = parser.parse_args()
 

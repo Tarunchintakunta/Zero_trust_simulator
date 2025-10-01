@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Zero Trust Architecture (ZTA) Event Generator
+ZTA Event Generator
 
-This module generates synthetic events for simulating user and device activities
+This module generates synthetic events for simulating activities
 in a hybrid work environment with ZTA controls.
 """
 
@@ -11,16 +11,20 @@ import json
 import random
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Literal, Optional, Union
+from typing import Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
-from src.utils.config import load_config, merge_cli_args, set_seed, validate_config
+from src.utils.config import (
+    load_config,
+    merge_cli_args,
+    set_seed,
+    validate_config,
+)
 
 from src.controls.auth import authenticate
 from src.controls.posture import PostureChecker, PostureStatus
 from src.controls.segmentation import SegmentationEngine
-from src.logging.central_logger import get_logger
 
 EventType = Literal["login", "access", "file_write", "exec"]
 AuthMethod = Literal["password", "mfa"]
@@ -38,8 +42,12 @@ class ZTAEvent(BaseModel):
     method: AuthMethod
     device_posture: DevicePosture
     ip: str = Field(pattern="^10\\.0\\.0\\.[0-9]{1,3}$")
-    resource: Optional[str] = Field(default=None, description="Resource being accessed")
-    decision: Optional[str] = Field(default=None, description="Access decision")
+    resource: Optional[str] = Field(
+        default=None, description="Resource being accessed"
+    )
+    decision: Optional[str] = Field(
+        default=None, description="Access decision"
+    )
     reason: Optional[str] = Field(default=None, description="Decision reason")
 
 
@@ -68,7 +76,11 @@ class EventGenerator:
         self.resources = ["/app/db", "/app/files", "/app/admin"]
 
         # Simulated passwords (in production, would be hashed)
-        self._passwords = {"alice": "alice123", "bob": "bob456", "carol": "carol789"}
+        self._passwords = {
+            "alice": "alice123",
+            "bob": "bob456",
+            "carol": "carol789",
+        }
 
     def _check_controls(
         self,
@@ -89,7 +101,9 @@ class EventGenerator:
             return False, auth_reason
 
         # Check device posture
-        posture_status, failed_controls = self.posture_checker.check_posture(device)
+        posture_status, failed_controls = self.posture_checker.check_posture(
+            device
+        )
         if posture_status == PostureStatus.NON_COMPLIANT:
             return False, f"Device non-compliant: {', '.join(failed_controls)}"
 
@@ -133,7 +147,9 @@ class EventGenerator:
             posture_status, _ = self.posture_checker.check_posture(device)
             device_posture = posture_status.value
         else:
-            device_posture = "compliant" if self.rng.random() > 0.2 else "non-compliant"
+            device_posture = (
+                "compliant" if self.rng.random() > 0.2 else "non-compliant"
+            )
 
         # Build event
         event = {
@@ -163,13 +179,21 @@ def generate_events(
 
 def main():
     """Main entry point for the event generator."""
-    parser = argparse.ArgumentParser(description="Generate synthetic ZTA events")
+    parser = argparse.ArgumentParser(
+        description="Generate synthetic ZTA events"
+    )
     parser.add_argument("--config", type=str, help="Path to config JSON file")
-    parser.add_argument("--count", type=int, help="Number of events to generate")
-    parser.add_argument("--seed", type=int, help="Random seed for reproducibility")
+    parser.add_argument(
+        "--count", type=int, help="Number of events to generate"
+    )
+    parser.add_argument(
+        "--seed", type=int, help="Random seed for reproducibility"
+    )
     parser.add_argument("--out", type=str, help="Output JSONL file path")
     parser.add_argument(
-        "--mode", choices=["baseline", "zta"], help="Simulation mode (baseline or zta)"
+        "--mode",
+        choices=["baseline", "zta"],
+        help="Simulation mode (baseline or zta)",
     )
 
     args = parser.parse_args()

@@ -21,7 +21,11 @@ def experiment_config(tmp_path):
             {
                 "name": "baseline",
                 "sim_count": 5,
-                "controls": {"auth": False, "posture": False, "segmentation": False},
+                "controls": {
+                    "auth": False,
+                    "posture": False,
+                    "segmentation": False,
+                },
                 "attack_profile": {
                     "enabled": True,
                     "type": "credential_stuffing",
@@ -32,7 +36,11 @@ def experiment_config(tmp_path):
             {
                 "name": "zta",
                 "sim_count": 5,
-                "controls": {"auth": True, "posture": True, "segmentation": True},
+                "controls": {
+                    "auth": True,
+                    "posture": True,
+                    "segmentation": True,
+                },
                 "attack_profile": {
                     "enabled": True,
                     "type": "credential_stuffing",

@@ -62,7 +62,9 @@ def verify_password(username: str, password: str) -> AuthResult:
     if not user:
         return AuthResult(False, "User not found")
 
-    if user["password"] != password:  # In production, use proper password hashing!
+    if (
+        user["password"] != password
+    ):  # In production, use proper password hashing!
         return AuthResult(False, "Invalid password")
 
     return AuthResult(True, "Password verified")

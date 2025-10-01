@@ -1,7 +1,7 @@
 """
-Zero Trust Architecture (ZTA) Device Posture Module
+ZTA Device Posture Module
 
-This module evaluates device security posture based on various security controls
+This module evaluates device security posture based on security controls
 and compliance requirements.
 """
 
@@ -126,7 +126,7 @@ class PostureChecker:
         # Check each required control
         for control in required:
             if control == PostureControl.OS_VERSION:
-                # Simple version check (in production, would check against minimum versions)
+                # Simple version check (would check min versions in prod)
                 if not device.os_version:
                     failed_controls.append("os_version")
 

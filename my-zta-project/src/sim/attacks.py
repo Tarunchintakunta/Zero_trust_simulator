@@ -10,9 +10,14 @@ import random
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
-from src.utils.config import load_config, merge_cli_args, set_seed, validate_config
+from src.utils.config import (
+    load_config,
+    merge_cli_args,
+    set_seed,
+    validate_config,
+)
 
 
 class AttackType(str, Enum):
@@ -88,7 +93,7 @@ class AttackSimulator:
         for _ in range(attempts):
             user = self.rng.choice(target_users)
             password = self.rng.choice(self._common_passwords)
-            device = f"attacker-{self.rng.randint(1,5)}"
+            device = f"attacker-{self.rng.randint(1, 5)}"
 
             event = {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -98,7 +103,7 @@ class AttackSimulator:
                 "success": False,  # Should be determined by controls
                 "method": "password",
                 "device_posture": "non-compliant",
-                "ip": f"192.168.1.{self.rng.randint(1,254)}",
+                "ip": f"192.168.1.{self.rng.randint(1, 254)}",
                 "attack_type": AttackType.CREDENTIAL_STUFFING,
                 "attack_phase": AttackPhase.INITIAL_ACCESS,
                 "attempted_password": password,
@@ -124,7 +129,7 @@ class AttackSimulator:
         events = []
         for _ in range(attempts):
             resource = self.rng.choice(target_resources)
-            device = f"compromised-{self.rng.randint(1,3)}"
+            device = f"compromised-{self.rng.randint(1, 3)}"
 
             event = {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -134,7 +139,7 @@ class AttackSimulator:
                 "success": False,  # Should be determined by controls
                 "method": "password",
                 "device_posture": "non-compliant",
-                "ip": f"10.0.0.{self.rng.randint(1,254)}",
+                "ip": f"10.0.0.{self.rng.randint(1, 254)}",
                 "resource": resource,
                 "attack_type": AttackType.LATERAL_MOVEMENT,
                 "attack_phase": AttackPhase.LATERAL_MOVEMENT,
@@ -167,11 +172,11 @@ class AttackSimulator:
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "event": "file_write",
             "user": compromised_user,
-            "device": f"compromised-{self.rng.randint(1,3)}",
+            "device": f"compromised-{self.rng.randint(1, 3)}",
             "success": False,  # Should be determined by controls
             "method": "password",
             "device_posture": "non-compliant",
-            "ip": f"10.0.0.{self.rng.randint(1,254)}",
+            "ip": f"10.0.0.{self.rng.randint(1, 254)}",
             "resource": self.rng.choice(target_resources),
             "filename": self.rng.choice(self._malware_patterns),
             "attack_type": AttackType.RANSOMWARE,
@@ -192,7 +197,7 @@ class AttackSimulator:
                 "device_posture": "non-compliant",
                 "ip": drop_event["ip"],
                 "resource": resource,
-                "filename": f"encrypted_{self.rng.randint(1,1000)}.locked",
+                "filename": f"encrypted_{self.rng.randint(1, 1000)}.locked",
                 "attack_type": AttackType.RANSOMWARE,
                 "attack_phase": AttackPhase.IMPACT,
             }
@@ -211,12 +216,18 @@ def main():
         choices=[t.value for t in AttackType],
         help="Type of attack to simulate",
     )
-    parser.add_argument("--target-users", nargs="+", help="List of users to target")
+    parser.add_argument(
+        "--target-users", nargs="+", help="List of users to target"
+    )
     parser.add_argument(
         "--target-resources", nargs="+", help="List of resources to target"
     )
-    parser.add_argument("--attempts", type=int, help="Number of attack attempts")
-    parser.add_argument("--seed", type=int, help="Random seed for reproducibility")
+    parser.add_argument(
+        "--attempts", type=int, help="Number of attack attempts"
+    )
+    parser.add_argument(
+        "--seed", type=int, help="Random seed for reproducibility"
+    )
     parser.add_argument("--out", type=str, help="Output JSONL file path")
 
     args = parser.parse_args()

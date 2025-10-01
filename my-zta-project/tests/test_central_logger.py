@@ -1,17 +1,14 @@
 import json
 import threading
-from pathlib import Path
 from src.logging.central_logger import get_logger
+
 
 def test_basic_logging(tmp_path):
     """Test basic event logging."""
     log_file = tmp_path / "test.jsonl"
     logger = get_logger(jsonl_path=log_file)
 
-    event = {
-        "event_type": "test",
-        "message": "hello world"
-    }
+    event = {"event_type": "test", "message": "hello world"}
     logger.log_event(event)
     logger.flush()
 
@@ -19,16 +16,14 @@ def test_basic_logging(tmp_path):
     assert "hello world" in text
     assert "test" in text
 
+
 def test_multiple_sinks(tmp_path):
     """Test logging to multiple sinks."""
     jsonl_file = tmp_path / "test.jsonl"
     csv_file = tmp_path / "test.csv"
     logger = get_logger(jsonl_path=jsonl_file, csv_path=csv_file)
 
-    event = {
-        "event_type": "test",
-        "message": "hello world"
-    }
+    event = {"event_type": "test", "message": "hello world"}
     logger.log_event(event)
     logger.flush()
 
@@ -42,6 +37,7 @@ def test_multiple_sinks(tmp_path):
     assert "message" in csv_text
     assert "hello world" in csv_text
 
+
 def test_rotating_sink(tmp_path):
     """Test rotating log sink."""
     rotating_dir = tmp_path / "logs"
@@ -49,16 +45,14 @@ def test_rotating_sink(tmp_path):
 
     # Log some events
     for i in range(3):
-        event = {
-            "event_type": "test",
-            "message": f"event {i}"
-        }
+        event = {"event_type": "test", "message": f"event {i}"}
         logger.log_event(event)
     logger.flush()
 
     # Should have created at least one log file
     log_files = list(rotating_dir.glob("*.jsonl"))
     assert len(log_files) >= 1
+
 
 def test_concurrent_logging(tmp_path):
     """Test concurrent logging from multiple threads."""
@@ -70,7 +64,7 @@ def test_concurrent_logging(tmp_path):
             event = {
                 "event_type": "test",
                 "worker": i,
-                "message": f"event {j}"
+                "message": f"event {j}",
             }
             logger.log_event(event)
 
