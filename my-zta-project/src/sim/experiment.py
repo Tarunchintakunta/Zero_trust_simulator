@@ -89,28 +89,22 @@ class ExperimentRunner:
             attack_sim = AttackSimulator(seed=self.config["seed"])
 
             if attack_profile["type"] == AttackType.CREDENTIAL_STUFFING:
-                self.logger.info(
-                    f"Cred stuffing in {scenario['name']}"
-                )
+                self.logger.info(f"Cred stuffing in {scenario['name']}")
                 attack_events = attack_sim.simulate_credential_stuffing(
                     target_users=attack_profile["target_users"],
                     attempts=attack_profile["attempts"],
                 )
 
             elif attack_profile["type"] == AttackType.LATERAL_MOVEMENT:
-                self.logger.info(
-                    f"Lateral movement in {scenario['name']}"
-                )
+                self.logger.info(f"Lateral movement in {scenario['name']}")
                 attack_events = attack_sim.simulate_lateral_movement(
                     compromised_user=attack_profile["compromised_user"],
                     target_resources=attack_profile["target_resources"],
-                    attempts=attack_profile["attempts"]
+                    attempts=attack_profile["attempts"],
                 )
 
             elif attack_profile["type"] == AttackType.RANSOMWARE:
-                self.logger.info(
-                    f"Ransomware attack in {scenario['name']}"
-                )
+                self.logger.info(f"Ransomware attack in {scenario['name']}")
                 attack_events = attack_sim.simulate_ransomware(
                     compromised_user=attack_profile["compromised_user"],
                     target_resources=attack_profile["target_resources"],
