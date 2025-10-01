@@ -38,7 +38,9 @@ class ReportGenerator:
         """Load data for a specific scenario."""
         events_file = self.experiment_dir / scenario / "events.jsonl"
         if events_file.exists():
-            return pd.read_json(events_file, lines=True, convert_dates=["timestamp"])
+            return pd.read_json(
+                events_file, lines=True, convert_dates=["timestamp"]
+            )
         return pd.DataFrame()
 
     def _format_metrics(self, metrics: Dict) -> str:
@@ -100,7 +102,10 @@ class ReportGenerator:
                     "",
                     "Attack Profile:",
                     "".join(
-                        [f"- {k}: {v}" for k, v in scenario["attack_profile"].items()]
+                        [
+                            f"- {k}: {v}"
+                            for k, v in scenario["attack_profile"].items()
+                        ]
                     ),
                     "",
                     "Results:",
@@ -113,14 +118,18 @@ class ReportGenerator:
             )
 
         # Add security analysis
-        sections.extend(["## Security Analysis", "", "### Attack Prevention", ""])
+        sections.extend(
+            ["## Security Analysis", "", "### Attack Prevention", ""]
+        )
 
         # Compare attack success rates
         baseline_data = self._load_scenario_data("baseline")
         zta_data = self._load_scenario_data("zta_full")
 
         if not baseline_data.empty and not zta_data.empty:
-            baseline_attacks = baseline_data[baseline_data["attack_type"].notna()]
+            baseline_attacks = baseline_data[
+                baseline_data["attack_type"].notna()
+            ]
             zta_attacks = zta_data[zta_data["attack_type"].notna()]
 
             if not baseline_attacks.empty and not zta_attacks.empty:
@@ -139,7 +148,9 @@ class ReportGenerator:
                 )
 
         # Add usability analysis
-        sections.extend(["## Usability Analysis", "", "### Task Completion", ""])
+        sections.extend(
+            ["## Usability Analysis", "", "### Task Completion", ""]
+        )
 
         # Calculate usability metrics
         analyzer = UsabilityAnalyzer()
@@ -197,7 +208,10 @@ def main():
 
     parser = argparse.ArgumentParser(description="Generate experiment report")
     parser.add_argument(
-        "--experiment", type=str, required=True, help="Path to experiment directory"
+        "--experiment",
+        type=str,
+        required=True,
+        help="Path to experiment directory",
     )
     parser.add_argument("--output", type=str, help="Output report file path")
 
